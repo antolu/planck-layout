@@ -31,25 +31,12 @@ float rickroll[][2] = SONG(RICK_ROLL);
 
 extern keymap_config_t keymap_config;
 
-enum planck_layers {
-  _QWERTY_SE,
-  _LOWER_SE,
-  _RAISE_SE,
-  _QWERTY_US,
-  _LOWER_US,
-  _RAISE_US,
-  _NUMPAD,
-  _PLOVER,
-  _ADJUST
-};
+enum planck_layers { _QWERTY, _LOWER, _RAISE, _NUMPAD, _PLOVER, _ADJUST };
 
 enum planck_keycodes {
-  QWERTY_SE = SAFE_RANGE,
-  QWERTY_US,
-  LOWER_SE,
-  RAISE_SE,
-  LOWER_US,
-  RAISE_US,
+  QWERTY = SAFE_RANGE,
+  LOWER,
+  RAISE,
   PLOVER,
   EXT_PLV,
   R_ARROW,
@@ -59,81 +46,23 @@ enum planck_keycodes {
   BACKLIT
 };
 
+#define CTRL_ESC LCTL_T(KC_ESC)
+#define MACOS_LCK LCTL(LSFT(KC_SYSTEM_POWER))
+#define CTRL_LEFT LCTL(KC_LEFT)
+#define CTRL_RGHT LCTL(KC_RIGHT)
+#define CTRL_UP LCTL(KC_UP)
+#define CTRL_DOWN LCTL(KC_DOWN)
+#define NUMBER MO(_NUMBER)
+#define SYMBOL MO(_SYMBOL)
+#define NAVIGATE MO(_NAVIGATE)
+
 enum { TD_QUOTE = 0 };
 
 tap_dance_action_t tap_dance_actions[] = {
     [TD_QUOTE] = ACTION_TAP_DANCE_DOUBLE(KC_QUOTE, KC_DOUBLE_QUOTE)};
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-
-    /* Qwerty Swedish
-     * ,-----------------------------------------------------------------------------------.
-     * | Tab  |   Q  |   W  |   E  |   R  |   T  |   Y  |   U  |   I  |   O  |
-     * P  | Bksp |
-     * |------+------+------+------+------+-------------+------+------+------+------+------|
-     * | Esc  |   A  |   S  |   D  |   F  |   G  |   H  |   J  |   K  |   L  |
-     * Ö  |  Ä   |
-     * |------+------+------+------+------+------|------+------+------+------+------+------|
-     * | Shift|   Z  |   X  |   C  |   V  |   B  |   N  |   M  |   ,  |   .  |
-     * Å  |Enter |
-     * |------+------+------+------+------+------+------+------+------+------+------+------|
-     * | Ctrl |  Del |  Alt |  GUI |Lower |    Space    |Raise | Left | Down |
-     * Up  |Right |
-     * `-----------------------------------------------------------------------------------'
-     */
-    [_QWERTY_SE] = LAYOUT_planck_grid(
-        KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P,
-        KC_BSPC, KC_ESC, KC_A, KC_S, KC_D, KC_F, KC_G, KC_H, KC_J, KC_K, KC_L,
-        NO_OSLH, NO_AE, KC_LSFT, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_N, KC_M,
-        KC_COMM, KC_DOT, SE_ARNG, KC_ENT, KC_LCTL, KC_DEL, KC_LGUI, KC_LALT,
-        LOWER_SE, KC_SPC, KC_SPC, RAISE_SE, KC_LEFT, KC_DOWN, KC_UP, KC_RGHT),
-
-    /* Lower Swedish
-     * ,-----------------------------------------------------------------------------------.
-     * |      |   !  |   @  |  £   |  $   |      |   {  |   [  |   ]  |   }  | 
-     *   | Bksp |
-     * |------+------+------+------+------+-------------+------+------+------+------+------|
-     * |      |   *  |   +  |  -   |  =   |  /   |      |      |      |      |
-     * |  |   |
-     * |------+------+------+------+------+------|------+------+------+------+------+------|
-     * |      |   >  |      |      |  ->  |      |      | Home | End  |      |
-     * |      |
-     * |------+------+------+------+------+------+------+------+------+------+------+------|
-     * |      |      |      |      |      |             |      | Next | Vol- |
-     * Vol+ | Play |
-     * `-----------------------------------------------------------------------------------'
-     */
-    [_LOWER_SE] = LAYOUT_planck_grid(
-        _______, S(KC_1), NO_AT, NO_GRV, NO_DLR, _______, NO_LCBR, NO_LBRC,
-        NO_RBRC, NO_LBRC, NO_BSLS, _______, NO_ACUT, SE_ASTR, NO_PLUS, NO_MINS,
-        NO_EQL, NO_SLSH, _______, _______, _______, _______, _______, KC_PIPE,
-        KC_CAPS, NO_GRTR, _______, _______, _______, _______, _______, KC_HOME,
-        KC_END, _______, _______, _______, _______, _______, _______, _______,
-        _______, _______, _______, _______, KC_MNXT, KC_VOLD, KC_VOLU, KC_MPLY),
-
-    /* Raise Swedish
-     * ,-----------------------------------------------------------------------------------.
-     * |      |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |
-     * 10 | Del  |
-     * |------+------+------+------+------+-------------+------+------+------+------+------|
-     * |      |      |      |      |      |  <   |  >   |      |      |      |
-     * PgUp |  '   |
-     * |------+------+------+------+------+------|------+------+------+------+------+------|
-     * |      |   <  |      |      |      | std::|  ~   | Home | End  |      |
-     * PgDn |      |
-     * |------+------+------+------+------+------+------+------+------+------+------+------|
-     * |      |      |      |      |      |             |      | Next | Vol- |
-     * Vol+ | Play |
-     * `-----------------------------------------------------------------------------------'
-     */
-    [_RAISE_SE] = LAYOUT_planck_grid(
-        _______, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0,
-        _______, _______, NO_PIPE, NO_AMPR, NO_BSLS, NO_DLR, _______, _______,
-        _______, _______, _______, _______, _______, _______, NO_LESS, _______,
-        _______, _______, KC_STD, NO_TILD, _______, _______, _______, _______,
-        _______, _______, KC_PSCR, _______, _______, _______, KC_SPC, KC_SPC,
-        _______, KC_MNXT, KC_VOLD, KC_VOLU, KC_MPLY),
-
+    // clang-format off
     /* Qwerty International
      * ,-----------------------------------------------------------------------------------.
      * | Tab  |   Q  |   W  |   E  |   R  |   T  |   Y  |   U  |   I  |   O  |
@@ -149,12 +78,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * Up  |Right |
      * `-----------------------------------------------------------------------------------'
      */
-    [_QWERTY_US] = LAYOUT_planck_grid(
+    [_QWERTY] = LAYOUT_planck_grid(
         KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P,
         KC_BSPC, KC_ESC, KC_A, KC_S, KC_D, KC_F, KC_G, KC_H, KC_J, KC_K, KC_L,
         KC_SCLN, TD(TD_QUOTE), KC_LSFT, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_N,
         KC_M, KC_COMM, KC_DOT, KC_SLSH, KC_ENT, KC_LCTL, KC_DEL, KC_LGUI,
-        KC_LALT, LOWER_US, KC_SPC, KC_SPC, RAISE_US, KC_LEFT, KC_DOWN, KC_UP,
+        KC_LALT, LOWER, KC_SPC, KC_SPC, RAISE, KC_LEFT, KC_DOWN, KC_UP,
         KC_RGHT),
 
     /* Lower International
@@ -172,7 +101,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * Vol+ | Play |
      * `-----------------------------------------------------------------------------------'
      */
-    [_LOWER_US] = LAYOUT_planck_grid(
+    [_LOWER] = LAYOUT_planck_grid(
         KC_GRV, KC_EXLM, KC_AT, KC_HASH, KC_DLR, KC_PERC, KC_CIRC, KC_AMPR,
         KC_ASTR, KC_LPRN, KC_RPRN, _______, _______, G(KC_1), G(KC_2), G(KC_3),
         G(KC_4), G(KC_5), _______, KC_UNDS, KC_PLUS, KC_LCBR, KC_RCBR, KC_PIPE,
@@ -195,7 +124,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * Vol+ | Play |
      * `-----------------------------------------------------------------------------------'
      */
-    [_RAISE_US] = LAYOUT_planck_grid(
+    [_RAISE] = LAYOUT_planck_grid(
         _______, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0,
         _______, _______, KC_ASTR, KC_PLUS, KC_MINS, KC_EQL, KC_SLSH, _______,
         _______, _______, KC_LBRC, KC_RBRC, KC_BSLS, _______, KC_WH_D, KC_WH_U,
@@ -224,7 +153,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_PMNS, _______, _______, _______, _______, _______, _______, _______,
         KC_BSPC, KC_P1, KC_P2, KC_P3, KC_PPLS, _______, _______, _______,
         _______, _______, _______, _______, KC_PENT, KC_P0, KC_PDOT, KC_PSLS,
-        LOWER_SE, _______, _______, RAISE_SE, _______, _______, _______,
+        _______, _______, _______, _______, _______, _______, _______,
         _______),
 
     /* Plover layer (http://opensteno.org)
@@ -264,10 +193,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * |      |
      * `-----------------------------------------------------------------------------------'
      */
-    // clang-format off
     [_ADJUST] = LAYOUT_planck_grid(
         KC_F1, KC_F2, KC_F3, KC_F4, KC_F5, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_F11, KC_F12,
-        RESET, RICKRL, _______, MU_ON, AU_ON, MI_ON, AG_SWAP, QWERTY_SE, QWERTY_US, NUMPAD, PLOVER, _______,
+        RESET, RICKRL, _______, MU_ON, AU_ON, MI_ON, AG_SWAP, _______, QWERTY, NUMPAD, PLOVER, _______,
         _______, _______, _______, MU_OFF, AU_OFF, MI_OFF, AG_NORM, _______, _______, KC_NUM, KC_CAPS, _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______)
     // clang-format on
@@ -275,18 +203,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
-  case QWERTY_SE:
+  case QWERTY:
     if (record->event.pressed) {
-      set_single_persistent_default_layer(_QWERTY_SE);
-#ifdef AUDIO_ENABLE
-      PLAY_SONG(se_song);
-#endif
-    }
-    return false;
-    break;
-  case QWERTY_US:
-    if (record->event.pressed) {
-      set_single_persistent_default_layer(_QWERTY_US);
+      set_single_persistent_default_layer(_QWERTY);
 #ifdef AUDIO_ENABLE
       PLAY_SONG(us_song);
 #endif
@@ -300,43 +219,23 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       PLAY_SONG(numpad_song);
 #endif
     }
-  case LOWER_SE:
+  case LOWER:
     if (record->event.pressed) {
-      layer_on(_LOWER_SE);
-      update_tri_layer(_LOWER_SE, _RAISE_SE, _ADJUST);
+      layer_on(_LOWER);
+      update_tri_layer(_LOWER, _RAISE, _ADJUST);
     } else {
-      layer_off(_LOWER_SE);
-      update_tri_layer(_LOWER_SE, _RAISE_SE, _ADJUST);
+      layer_off(_LOWER);
+      update_tri_layer(_LOWER, _RAISE, _ADJUST);
     }
     return false;
     break;
-  case RAISE_SE:
+  case RAISE:
     if (record->event.pressed) {
-      layer_on(_RAISE_SE);
-      update_tri_layer(_LOWER_SE, _RAISE_SE, _ADJUST);
+      layer_on(_RAISE);
+      update_tri_layer(_LOWER, _RAISE, _ADJUST);
     } else {
-      layer_off(_RAISE_SE);
-      update_tri_layer(_LOWER_SE, _RAISE_SE, _ADJUST);
-    }
-    return false;
-    break;
-  case LOWER_US:
-    if (record->event.pressed) {
-      layer_on(_LOWER_US);
-      update_tri_layer(_LOWER_US, _RAISE_US, _ADJUST);
-    } else {
-      layer_off(_LOWER_US);
-      update_tri_layer(_LOWER_US, _RAISE_US, _ADJUST);
-    }
-    return false;
-    break;
-  case RAISE_US:
-    if (record->event.pressed) {
-      layer_on(_RAISE_US);
-      update_tri_layer(_LOWER_US, _RAISE_US, _ADJUST);
-    } else {
-      layer_off(_RAISE_US);
-      update_tri_layer(_LOWER_US, _RAISE_US, _ADJUST);
+      layer_off(_RAISE);
+      update_tri_layer(_LOWER, _RAISE, _ADJUST);
     }
     return false;
     break;
@@ -346,8 +245,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       stop_all_notes();
       PLAY_SONG(plover_song);
 #endif
-      layer_off(_RAISE_SE);
-      layer_off(_LOWER_SE);
       layer_off(_ADJUST);
       layer_on(_PLOVER);
       if (!eeconfig_is_enabled()) {
@@ -365,7 +262,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       PLAY_SONG(plover_gb_song);
 #endif
       layer_off(_PLOVER);
-      layer_on(_QWERTY_US);
+      layer_on(_QWERTY);
     }
     return false;
     break;
@@ -416,18 +313,10 @@ uint16_t muse_tempo = 50;
 
 void encoder_update(bool clockwise) {
   if (muse_mode) {
-    if (IS_LAYER_ON(_RAISE_SE)) {
-      if (clockwise) {
-        muse_offset++;
-      } else {
-        muse_offset--;
-      }
+    if (clockwise) {
+      muse_tempo += 1;
     } else {
-      if (clockwise) {
-        muse_tempo += 1;
-      } else {
-        muse_tempo -= 1;
-      }
+      muse_tempo -= 1;
     }
   } else {
     if (clockwise) {
@@ -491,9 +380,6 @@ void matrix_scan_user(void) {
 
 bool music_mask_user(uint16_t keycode) {
   switch (keycode) {
-  case RAISE_SE:
-  case LOWER_SE:
-    return false;
   default:
     return true;
   }

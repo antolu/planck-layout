@@ -5,6 +5,7 @@
 #define STARTUP_SONG SONG(NO_SOUND)
 
 #define DOUBLE_TAP_SHIFT_TURNS_ON_CAPS_WORD
+#define TAPPING_TERM 200
 
 #define DEFAULT_LAYER_SONGS                                                    \
   {                                                                            \

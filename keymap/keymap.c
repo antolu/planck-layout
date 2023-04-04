@@ -18,7 +18,11 @@
 #include "keymap_nordic.h"
 #include "keymap_swedish.h"
 #include "muse.h"
+#include "quantum.h"
 #include "song_list.h"
+
+#undef TAP_DANCE_ENABLE
+#define TAP_DANCE_ENABLE yes
 
 #ifdef AUDIO_ENABLE
 float qwerty_song[][2] = SONG(QWERTY_SOUND);
@@ -65,12 +69,32 @@ enum planck_keycodes {
 #define SYMBOL MO(_SYMBOL)
 #define NAVIGATE MO(_NAVIGATE)
 
-enum { TD_QUOTE = 0, TD_LPB, TD_RPB };
+enum { TD_QUOTE = 0, TD_LCTL, TD_LSFT, TD_RCTL };
 
-tap_dance_action_t tap_dance_actions[] = {
-    [TD_QUOTE] = ACTION_TAP_DANCE_DOUBLE(KC_QUOTE, KC_DOUBLE_QUOTE),
-    [TD_LPB] = ACTION_TAP_DANCE_DOUBLE(KC_LPRN, KC_LBRC),
-    [TD_RPB] = ACTION_TAP_DANCE_DOUBLE(KC_RPRN, KC_RBRC)};
+enum {
+  SINGLE_TAP = 1,
+  SINGLE_HOLD = 2,
+  DOUBLE_TAP = 3,
+  DOUBLE_HOLD = 4,
+  DOUBLE_SINGLE_TAP = 5,
+  TRIPLE_TAP = 6,
+  TRIPLE_HOLD = 7
+};
+
+typedef struct {
+  bool is_press_action;
+  int state;
+} tap;
+
+// for the x tap dance. Put it here so it can be used in any keymap
+void lctrl_finished(tap_dance_state_t *state, void *user_data);
+void lctrl_reset(tap_dance_state_t *state, void *user_data);
+void rctrl_finished(tap_dance_state_t *state, void *user_data);
+void rctrl_reset(tap_dance_state_t *state, void *user_data);
+void lshift_finished(tap_dance_state_t *state, void *user_data);
+void lshift_reset(tap_dance_state_t *state, void *user_data);
+
+int cur_dance(tap_dance_state_t *state);
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // clang-format off
@@ -88,8 +112,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_QWERTY] = LAYOUT_planck_grid(
         KC_TAB,   KC_Q,   KC_W,    KC_E,    KC_R,  KC_T,   KC_Y,   KC_U,  KC_I,    KC_O,    KC_P,    KC_BSPC,
         CTRL_ESC, KC_A,   KC_S,    KC_D,    KC_F,  KC_G,   KC_H,   KC_J,  KC_K,    KC_L,    KC_SCLN, KC_QUOT,
-        SC_LSPO,  KC_Z,   KC_X,    KC_C,    KC_V,  KC_B,   KC_N,   KC_M,  KC_COMM, KC_DOT,  KC_SLSH, SC_SENT,
-        TD_LPB,   KC_LGUI,KC_LALT, NAVIGATE,NUMBER,KC_SPC, KC_SPC, SYMBOL,NAVIGATE,KC_DEL , KC_RALT, TD_RPB
+        TD(TD_LSFT),  KC_Z,   KC_X,    KC_C,    KC_V,  KC_B,   KC_N,   KC_M,  KC_COMM, KC_DOT,  KC_SLSH, SC_SENT,
+        TD(TD_LCTL),  KC_LGUI,KC_LALT, NAVIGATE,NUMBER,KC_SPC, KC_SPC, SYMBOL,NAVIGATE,KC_DEL , KC_RALT, TD(TD_RCTL)
         ),
 
     /* Colemak
@@ -114,7 +138,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * ,-----------------------------------------------------------------------------------------------------------.
      * |        |   F11  |   F12  |   F13  |   F14  |   F15  |   F16  |   F17  |   F18  |   F19  |   F20  |        |
      * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
-     * |        |    !   |    @   |    #   |    $   |    %   |    ^   |    &   |    *   |    (   |    )   |    "   |
+     * |        |    !   |    @   |    #   |    $   |    %   |    ^   |    &   |    *   |    (   |    )   |    =   |
      * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
      * |        |    _   |    +   |    ~   |    |   |        |        |        |        |        |        |        |
      * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
@@ -123,8 +147,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      */
     [_SYMBOL] = LAYOUT_planck_grid(
         _______, KC_F11,  KC_F12,  KC_F13,  KC_F14,  KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  _______,
-        _______, S(KC_1), S(KC_2), S(KC_3), S(KC_4), S(KC_5), S(KC_6), S(KC_7), S(KC_8), S(KC_9), S(KC_0),  KC_DQT,
-        _______, KC_UNDS, KC_PLUS, KC_TILDE,KC_PIPE, _______, _______, _______, _______, _______, _______, _______,
+        _______, S(KC_1), S(KC_2), S(KC_3), S(KC_4), S(KC_5), S(KC_6), S(KC_7), S(KC_8), S(KC_9), S(KC_0),  KC_EQL,
+        _______, KC_UNDS, KC_PLUS, KC_TILDE,KC_PIPE, _______, _______, _______, _______, KC_LCBR, KC_RCBR, _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
         ),
 
@@ -132,17 +156,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * ,-----------------------------------------------------------------------------------------------------------.
      * |        |   <<   |  Mute  |   >|   |   >>   |        |        |  Home  |  PgDn  |  PgDn  |  End   |        |
      * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
-     * |        |  Ctrl← | Ctrl ↓ | Ctrl ↑ | Ctrl → |        |        |    ←   |    ↓   |    ↑   |    →   |        |
+     * |        |  Ctrl← | Ctrl ↓ | Ctrl ↑ | Ctrl → |        |    ←   |    ↓   |    ↑   |    →   |        |        |
      * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
-     * |        |        |        |        |        |        |        |        |        |        |        |        |
+     * |        |  Sup1  |  Sup2  |  Sup3  |  Sup4  |  Sup5  |        |        |        |        |        |        |
      * |--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------|
      * |        |        |        |        |        |        |        |        |        |        |        |        |
      * `-----------------------------------------------------------------------------------------------------------'
      */
     [_NAVIGATE] = LAYOUT_planck_grid(
         _______, KC_MPRV, KC_MUTE, KC_MPLY, KC_MNXT, _______, _______, KC_HOME, KC_PGDN, KC_PGUP, KC_END,  _______,
-        _______, CL_LEFT, CL_DOWN, CL_UP,   CL_RGHT, _______, _______, KC_LEFT, KC_DOWN, KC_UP,   KC_RIGHT,_______,
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        _______, CL_LEFT, CL_DOWN, CL_UP,   CL_RGHT, _______, KC_LEFT, KC_DOWN, KC_UP,   KC_RIGHT,_______, _______,
+        _______, G(KC_1), G(KC_2), G(KC_3), G(KC_4), G(KC_5), _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
         ),
 
@@ -376,3 +400,171 @@ bool music_mask_user(uint16_t keycode) {
     return true;
   }
 }
+
+int cur_dance(tap_dance_state_t *state) {
+  if (state->count == 1) {
+    if (state->interrupted || !state->pressed)
+      return SINGLE_TAP;
+    // key has not been interrupted, but they key is still held. Means you want
+    // to send a 'HOLD'.
+    else
+      return SINGLE_HOLD;
+  } else if (state->count == 2) {
+    /*
+     * DOUBLE_SINGLE_TAP is to distinguish between typing "pepper", and actually
+     * wanting a double tap action when hitting 'pp'. Suggested use case for
+     * this return value is when you want to send two keystrokes of the key, and
+     * not the 'double tap' action/macro.
+     */
+    if (state->interrupted)
+      return DOUBLE_SINGLE_TAP;
+    else if (state->pressed)
+      return DOUBLE_HOLD;
+    else
+      return DOUBLE_TAP;
+  }
+  // Assumes no one is trying to type the same letter three times (at least not
+  // quickly). If your tap dance key is 'KC_W', and you want to type "www."
+  // quickly - then you will need to add an exception here to return a
+  // 'TRIPLE_SINGLE_TAP', and define that enum just like 'DOUBLE_SINGLE_TAP'
+  if (state->count == 3) {
+    if (state->interrupted || !state->pressed)
+      return TRIPLE_TAP;
+    else
+      return TRIPLE_HOLD;
+  } else
+    return 8; // magic number. At some point this method will expand to work for
+              // more presses
+}
+
+static tap lctrl_state = {.is_press_action = true, .state = 0};
+static tap rctrl_state = {.is_press_action = true, .state = 0};
+static tap lshift_state = {.is_press_action = true, .state = 0};
+
+void lctrl_finished(tap_dance_state_t *state, void *user_data) {
+  lctrl_state.state = cur_dance(state);
+  switch (lctrl_state.state) {
+  case SINGLE_TAP:
+    register_code16(KC_LPRN);
+    break;
+  case SINGLE_HOLD:
+    register_code(KC_LCTL);
+    break;
+  case DOUBLE_TAP:
+    register_code(KC_LBRC);
+    break;
+  case TRIPLE_TAP:
+    register_code16(KC_LCBR);
+    break;
+  case DOUBLE_SINGLE_TAP:
+    register_code16(KC_LPRN);
+    break;
+  }
+}
+
+void lctrl_reset(tap_dance_state_t *state, void *user_data) {
+  switch (lctrl_state.state) {
+  case SINGLE_TAP:
+    unregister_code16(KC_LPRN);
+    break;
+  case SINGLE_HOLD:
+    unregister_code(KC_LCTL);
+    break;
+  case DOUBLE_TAP:
+    unregister_code(KC_LBRC);
+    break;
+  case TRIPLE_TAP:
+    unregister_code16(KC_LCBR);
+    break;
+  /* case DOUBLE_HOLD: unregister_code(KC_LALT); */
+  case DOUBLE_SINGLE_TAP:
+    unregister_code16(KC_LPRN);
+    break;
+  }
+  lctrl_state.state = 0;
+}
+
+void rctrl_finished(tap_dance_state_t *state, void *user_data) {
+  rctrl_state.state = cur_dance(state);
+  switch (rctrl_state.state) {
+  case SINGLE_TAP:
+    register_code16(KC_RPRN);
+    break;
+  case SINGLE_HOLD:
+    register_code(KC_RCTL);
+    break;
+  case DOUBLE_TAP:
+    register_code(KC_RBRC);
+    break;
+  case TRIPLE_TAP:
+    register_code16(KC_RCBR);
+    break;
+  case DOUBLE_SINGLE_TAP:
+    register_code16(KC_RPRN);
+    break;
+  }
+}
+
+void rctrl_reset(tap_dance_state_t *state, void *user_data) {
+  switch (rctrl_state.state) {
+  case SINGLE_TAP:
+    unregister_code16(KC_RPRN);
+    break;
+  case SINGLE_HOLD:
+    unregister_code(KC_RCTL);
+    break;
+  case DOUBLE_TAP:
+    unregister_code(KC_RBRC);
+    break;
+  case TRIPLE_TAP:
+    unregister_code16(KC_RCBR);
+    break;
+  /* case DOUBLE_HOLD: unregister_code(KC_LALT); */
+  case DOUBLE_SINGLE_TAP:
+    unregister_code16(KC_RPRN);
+    break;
+  }
+  rctrl_state.state = 0;
+}
+
+void lshift_finished(tap_dance_state_t *state, void *user_data) {
+  lshift_state.state = cur_dance(state);
+  switch (lshift_state.state) {
+  case SINGLE_TAP:
+    register_code(KC_LSFT);
+    break;
+  case SINGLE_HOLD:
+    register_code(KC_LSFT);
+    break;
+  case DOUBLE_TAP:
+    caps_word_on();
+    break;
+  case TRIPLE_TAP:
+    register_code(KC_CAPS);
+    break;
+  }
+}
+
+void lshift_reset(tap_dance_state_t *state, void *user_data) {
+  switch (lshift_state.state) {
+  case SINGLE_TAP:
+    unregister_code(KC_LSFT);
+    break;
+  case SINGLE_HOLD:
+    unregister_code(KC_LSFT);
+    break;
+  case DOUBLE_TAP:
+    break;
+  case TRIPLE_TAP:
+    unregister_code(KC_CAPS);
+    break;
+  }
+  lshift_state.state = 0;
+}
+
+tap_dance_action_t tap_dance_actions[] = {
+    [TD_LCTL] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, lctrl_finished, lctrl_reset),
+    [TD_LSFT] =
+        ACTION_TAP_DANCE_FN_ADVANCED(NULL, lshift_finished, lshift_reset),
+    [TD_RCTL] =
+        ACTION_TAP_DANCE_FN_ADVANCED(NULL, rctrl_finished, rctrl_reset)};
